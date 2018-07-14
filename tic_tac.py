@@ -3,13 +3,13 @@ import os
 # loop through the board and run a function
 # using optional keyword arguments for optionally 
 # doing something at the start or end of line
-def fn_board(brd,fn,space=None,ending=None):
+def fn_board(brd,fn,start=None,ending=None):
     new_brd = brd
     i = 0
     while i < len(new_brd):
         n = 0
-        if space:
-            space() # do something at beginning of line
+        if start:
+            start() # do something at beginning of line
         # if lines[0]:
         while n < len(new_brd[i]):
             fn(new_brd[i][n],i,n)
@@ -44,9 +44,9 @@ def draw_board(brd):
          print('\n')
 
     fn_board(
-        brd, 
-        draw, 
-        space=draw_space, 
+        brd,
+        draw,
+        start=draw_space,
         ending=draw_line_end
         )
 
