@@ -62,24 +62,25 @@ def handle_error(msg):
 def on_board(num):
     return 2 >= num >= 0
 
-def exec_turn():
+def set_player_char():
     global player_char
-    if player_char == '':
-        while True:
-            player_char = input('Choose [X] or [O]: ')
-            if len(player_char) == 0:
-                handle_error('You must input [X] or [O]')
+    while True:
+        player_char = input('Choose [X] or [O]: ')
+        if len(player_char) == 0:
+            handle_error('You must input [X] or [O]')
+            continue
+        else:
+            player_char = player_char[0].upper()
+            if player_char != 'X' and player_char != 'O':
+                handle_error('You must choose [X] or [O]')
                 continue
             else:
-                player_char = player_char[0].upper()
-                if player_char != 'X' and player_char != 'O':
-                    handle_error('You must choose [X] or [O]')
-                    continue
-                else:
-                    print('playerChar is:  ', player_char)
-                    break
+                print('playerChar is:  ', player_char)
+                break
 
-
+def exec_turn():
+    if player_char == '':
+        set_player_char()
 
     while True:
         try:
@@ -112,7 +113,7 @@ def empty_spots(brd):
     def empty(*arg):
         if arg[0] == '-':
             arr.append([arg[1],arg[2]])
-            
+
     fn_board(brd, empty)
     print('empty spots: ', arr)
     
@@ -134,7 +135,6 @@ def minimax(brd,player):
     else:
         return 0
 
-    
 def best_placement(brd):
     # determine best place to move
     # currently the computer places in the first available empty square
