@@ -106,16 +106,20 @@ def place_player(arr, char):
         exec_turn()
     return
 
+def place_computer():
+    global computer_char
+    computer_char = "O" if player_char == 'X'  else "X"
+    best_placement(board)
+
 # returns coords of empty positions
 def empty_spots(brd):
     arr = []
-    i = 0
     def empty(*arg):
         if arg[0] == '-':
             arr.append([arg[1],arg[2]])
 
     fn_board(brd, empty)
-    print('empty spots: ', arr)
+    # print('empty spots: ', arr)
     
     return arr
 
@@ -125,8 +129,7 @@ def minimax(brd,player):
     # decrease score of that spot
     # if placing computer_char in that position results in the computer winning,
     # increase score of spot
-    avail_spots = empty_spots(new_brd)
-    moves = []
+    new_brd = brd
 
     if check_win(new_brd,player_char):
         return -1
@@ -138,13 +141,22 @@ def minimax(brd,player):
 def best_placement(brd):
     # determine best place to move
     # currently the computer places in the first available empty square
+    empties = empty_spots(brd)
+
+    def evaluate_spots(n):
+        if n < len(empty_spots(brd)):
+            evaluate_spots(n+1);
+        else:
+            return
+        temp = brd
+        temp[empties[n][0]][empties[n][1]] = computer_char
+
+        print("win? ", minimax(temp,computer_char))
+
     if not len(empty_spots(brd)) == 0:
         place_player(empty_spots(brd)[0],computer_char)
+        # evaluate_spots(0)
 
-def place_computer():
-    global computer_char
-    computer_char = "O" if player_char == 'X'  else "X"
-    best_placement(board)
 
 def check_win(brd, player):
     win_conditions = [
@@ -167,6 +179,7 @@ def check_win(brd, player):
                 x += 1
         if x == 3:
             return True
+    return False
 
 def game_over():
     if check_win(board,player_char): 
