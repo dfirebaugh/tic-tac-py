@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 
 # loop through the board and run a function
 # using optional keyword arguments for optionally 
@@ -10,7 +11,6 @@ def fn_board(brd,fn,start=None,ending=None):
         n = 0
         if start:
             start() # do something at beginning of line
-        # if lines[0]:
         while n < len(new_brd[i]):
             fn(new_brd[i][n],i,n)
             n += 1
@@ -30,13 +30,13 @@ def init_board():
 
 board = init_board()
 player_char = ''
-computer_char = ''
+ai_char = ''
 
 def draw_board(brd):
     print('  ')
     def draw(*arg):
         if arg[0]:
-            print(arg[0], end=' |  ')
+            print(arg[0], end =' |  ')
 
     def draw_space():
         print('  ', end ="")
@@ -50,14 +50,15 @@ def draw_board(brd):
         ending=draw_line_end
         )
 
-def logger(msg):
+def logger(msg=None):
     # cross-platform clears stdout
     os.system('cls' if os.name == 'nt' else 'clear')
     draw_board(board)
-    print(msg)
+    if msg:
+        print(msg)
 
 def handle_error(msg):
-    logger(msg)
+    logger(msg=msg)
 
 def on_board(num):
     return 2 >= num >= 0
@@ -77,6 +78,9 @@ def set_player_char():
             else:
                 print('playerChar is:  ', player_char)
                 break
+    global ai_char
+    ai_char = "O" if player_char == 'X'  else "X"
+    
 
 def exec_turn():
     if player_char == '':
@@ -99,17 +103,12 @@ def exec_turn():
 def place_player(arr, char):
     if board[arr[0]][arr[1]] == '-':
         board[arr[0]][arr[1]] = char
-        logger('placed')
+        logger(msg='placed')
     else:
         handle_error('invalid placement -- something already exists in this spot')
         print(board[arr[0]][arr[1]] , ' is already in that spot')
         exec_turn()
     return
-
-def place_computer():
-    global computer_char
-    computer_char = "O" if player_char == 'X'  else "X"
-    best_placement(board)
 
 # returns coords of empty positions
 def empty_spots(brd):
@@ -119,44 +118,49 @@ def empty_spots(brd):
             arr.append([arg[1],arg[2]])
 
     fn_board(brd, empty)
-    # print('empty spots: ', arr)
-    
     return arr
 
-def minimax(brd,player):
+def minimax(brd, pos):
     # avail_spots will be evaluated as potential positions
     # if placing player_char in that position results in the player winning, 
     # decrease score of that spot
-    # if placing computer_char in that position results in the computer winning,
+    # if placing ai_char in that position results in the ai winning,
     # increase score of spot
-    new_brd = brd
-
-    if check_win(new_brd,player_char):
+    
+    brd[pos[0]][pos[1]] = player_char
+    if check_win(brd,player_char):
         return -1
-    elif check_win(new_brd,computer_char):
-        return 1
     else:
-        return 0
+        brd[pos[0]][pos[1]] = ai_char
+        if check_win(brd,ai_char):
+            return 1
+        else:
+            return 0
 
 def best_placement(brd):
     # determine best place to move
-    # currently the computer places in the first available empty square
+    # currently the ai places in the first available empty square
     empties = empty_spots(brd)
-
-    def evaluate_spots(n):
-        if n < len(empty_spots(brd)):
-            evaluate_spots(n+1);
-        else:
+    def eval():
+        i = 0
+        move = False
+        if len(empties) == 0:
             return
-        temp = brd
-        temp[empties[n][0]][empties[n][1]] = computer_char
-
-        print("win? ", minimax(temp,computer_char))
-
-    if not len(empty_spots(brd)) == 0:
-        place_player(empty_spots(brd)[0],computer_char)
-        # evaluate_spots(0)
-
+        else:
+            while i < len(empties):
+                local_brd = deepcopy(brd)
+                mmax = minimax(local_brd, empties[i])
+                if mmax == -1 or mmax == 1:
+                    move = empties[i] 
+                    break
+                i += 1
+            if move:
+                brd[move[0]][move[1]] = ai_char
+                logger()
+            else:
+                brd[empties[0][0]][empties[0][1]] = ai_char
+                logger()
+    eval()
 
 def check_win(brd, player):
     win_conditions = [
@@ -184,23 +188,24 @@ def check_win(brd, player):
 def game_over():
     if check_win(board,player_char): 
         return 'player'
-    elif check_win(board,computer_char):
-        return 'computer'
+    elif check_win(board,ai_char):
+        return 'ai'
 
 def game_loop():
+
     if game_over() == 'player': 
-        logger('YOU WON THE GAME!!!')
+        logger(msg='YOU WON THE GAME!!!')
         return
-    elif game_over() == 'computer':
-        logger('You lost')
+    elif game_over() == 'ai':
+        logger(msg='You lost')
         return
     else:
         if len(empty_spots(board)) == 0:
-            logger('tied')
+            logger(msg='tied')
             return
         else:
             exec_turn()
-            place_computer()
+            best_placement(board)
             game_loop()
 
 game_loop()
