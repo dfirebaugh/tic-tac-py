@@ -88,7 +88,7 @@ def exec_turn():
 
     while True:
         try:
-            a, b = [int(x) for x in input('Enter a position (i.e. 2 numbers separated by spaces):  ').split()]
+            a, b = [int(x) for x in input('Enter a position (i.e. 2 numbers; 0, 1, or 2, separated by spaces):  ').split()]
         except ValueError:
             handle_error('Error: please input 2 numbers separated by *SPACES')
             continue
