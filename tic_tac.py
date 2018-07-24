@@ -127,13 +127,13 @@ def minimax(brd, pos):
     # if placing ai_char in that position results in the ai winning,
     # increase score of spot
     
-    brd[pos[0]][pos[1]] = player_char
-    if check_win(brd,player_char):
-        return -1
+    brd[pos[0]][pos[1]] = ai_char
+    if check_win(brd,ai_char):
+        return 1
     else:
-        brd[pos[0]][pos[1]] = ai_char
-        if check_win(brd,ai_char):
-            return 1
+        brd[pos[0]][pos[1]] = player_char
+        if check_win(brd,player_char):
+            return -1
         else:
             return 0
 
@@ -147,19 +147,18 @@ def best_placement(brd):
         if len(empties) == 0:
             return
         else:
+            move = empties[0] 
             while i < len(empties):
                 local_brd = deepcopy(brd)
                 mmax = minimax(local_brd, empties[i])
-                if mmax == -1 or mmax == 1:
-                    move = empties[i] 
+                if mmax == 1:
+                    move = empties[i]
                     break
+                elif mmax == -1:
+                    move = empties[i]
                 i += 1
-            if move:
-                brd[move[0]][move[1]] = ai_char
-                logger()
-            else:
-                brd[empties[0][0]][empties[0][1]] = ai_char
-                logger()
+            brd[move[0]][move[1]] = ai_char
+            logger()
     eval()
 
 def check_win(brd, player):
