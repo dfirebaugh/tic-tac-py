@@ -1,5 +1,6 @@
 import os
 from copy import deepcopy
+import minMax
 
 # loop through the board and run a function
 # using optional keyword arguments for optionally 
@@ -120,46 +121,13 @@ def empty_spots(brd):
     fn_board(brd, empty)
     return arr
 
-def minimax(brd, pos):
-    # avail_spots will be evaluated as potential positions
-    # if placing player_char in that position results in the player winning, 
-    # decrease score of that spot
-    # if placing ai_char in that position results in the ai winning,
-    # increase score of spot
-    
-    brd[pos[0]][pos[1]] = ai_char
-    if check_win(brd,ai_char):
-        return 1
-    else:
-        brd[pos[0]][pos[1]] = player_char
-        if check_win(brd,player_char):
-            return -1
-        else:
-            return 0
 
 def best_placement(brd):
-    # determine best place to move
-    # currently the ai places in the first available empty square
-    empties = empty_spots(brd)
-    def eval():
-        i = 0
-        move = False
-        if len(empties) == 0:
-            return
-        else:
-            move = empties[0] 
-            while i < len(empties):
-                local_brd = deepcopy(brd)
-                mmax = minimax(local_brd, empties[i])
-                if mmax == 1:
-                    move = empties[i]
-                    break
-                elif mmax == -1:
-                    move = empties[i]
-                i += 1
-            brd[move[0]][move[1]] = ai_char
-            logger()
-    eval()
+    #print(brd)
+    ai_move = minMax.minMax(brd, ai_char)[1]
+    brd[ai_move[1]][ai_move[0]] = ai_char
+    logger()
+    
 
 def check_win(brd, player):
     win_conditions = [
