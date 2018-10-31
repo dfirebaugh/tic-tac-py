@@ -120,46 +120,79 @@ def empty_spots(brd):
     fn_board(brd, empty)
     return arr
 
-def minimax(brd, pos):
-    # avail_spots will be evaluated as potential positions
-    # if placing player_char in that position results in the player winning, 
-    # decrease score of that spot
-    # if placing ai_char in that position results in the ai winning,
-    # increase score of spot
+def find_heuristic(board):
+    global player_char, ai_char
+
+    score = 0
+    if check_win(board, player_char):
+        score += 100
+    if check_win(board, ai_char):
+        score -= 100
+
+    # score best on position
+    def check_postion_score(board, player):
+        position_score = 0
+        score_by_position = [
+            [3,2,3],
+            [2,4,2],
+            [3,2,3]
+        ]
+        for row in range(0,3):
+            for col in range(0,3):
+                if board[row][col] == player:
+                        position_score += score_by_position[row][col]
+
+        return position_score
     
-    brd[pos[0]][pos[1]] = ai_char
-    if check_win(brd,ai_char):
-        return 1
+    def check_consecutive(board, player):
+        valid_position = 0
+
+    score += check_postion_score(board, player_char)
+    score -= check_postion_score(board, ai_char)
+
+    return score
+
+
+def minimax(brd, depth, is_ai):
+    empties = empty_spots(brd)
+    move_value_map = {}
+    if game_over() or len(empties) == 0 or depth == 0:
+        return (find_heuristic(brd), "dummy move")
+    if is_ai:
+        value = 1000
+        # Move and give turn
+        best_move = []
+        for i in range(0, len(empties)):
+            local_brd = deepcopy(brd)
+            move = empties[i]
+            local_brd[move[0]][move[1]] = ai_char
+
+            previous_value = value
+            value = min(value, minimax(local_brd, depth-1, False)[0])
+            if value != previous_value:
+                best_move = move
+
+        return value, best_move
     else:
-        brd[pos[0]][pos[1]] = player_char
-        if check_win(brd,player_char):
-            return -1
-        else:
-            return 0
+        value = -1000
+        best_move = []
+        for i in range(0, len(empties)):
+            local_brd = deepcopy(brd)
+            move = empties[i]
+            local_brd[move[0]][move[1]] = player_char
+
+            previous_value = value
+            value = max(value, minimax(local_brd, depth-1, True)[0])
+            if value != previous_value:
+                best_move = move
+
+        return value, best_move
+
 
 def best_placement(brd):
-    # determine best place to move
-    # currently the ai places in the first available empty square
-    empties = empty_spots(brd)
-    def eval():
-        i = 0
-        move = False
-        if len(empties) == 0:
-            return
-        else:
-            move = empties[0] 
-            while i < len(empties):
-                local_brd = deepcopy(brd)
-                mmax = minimax(local_brd, empties[i])
-                if mmax == 1:
-                    move = empties[i]
-                    break
-                elif mmax == -1:
-                    move = empties[i]
-                i += 1
-            brd[move[0]][move[1]] = ai_char
-            logger()
-    eval()
+    (value, move) = minimax(brd, 4, True)
+    brd[move[0]][move[1]] = ai_char
+    logger()
 
 def check_win(brd, player):
     win_conditions = [
@@ -189,22 +222,30 @@ def game_over():
         return 'player'
     elif check_win(board,ai_char):
         return 'ai'
+    return False
+
+def check_end_game(board):
+    if game_over() == 'player': 
+        logger(msg='YOU WON THE GAME!!!')
+        return True
+    elif game_over() == 'ai':
+        logger(msg='You lost')
+        return True
+    if len(empty_spots(board)) == 0:
+        logger(msg='tied')
+        return True
+    return False
 
 def game_loop():
 
-    if game_over() == 'player': 
-        logger(msg='YOU WON THE GAME!!!')
-        return
-    elif game_over() == 'ai':
-        logger(msg='You lost')
-        return
-    else:
-        if len(empty_spots(board)) == 0:
-            logger(msg='tied')
-            return
-        else:
-            exec_turn()
-            best_placement(board)
-            game_loop()
+    if check_end_game(board):
+        return 
+    exec_turn()
+
+    if check_end_game(board):
+        return 
+    best_placement(board)
+    game_loop()
+
 
 game_loop()
